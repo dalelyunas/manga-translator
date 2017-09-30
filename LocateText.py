@@ -9,7 +9,7 @@ DATE: Saturday, Sept 14th 2013
 
   Setment raw manga scan and output image
   with text areas outlined in red.
-  
+
 """
 #import clean_page as clean
 import connected_components as cc
@@ -21,6 +21,7 @@ import furigana
 import arg
 import defaults
 from scipy.misc import imsave
+from PIL import Image
 
 import numpy as np
 import cv2
@@ -30,6 +31,7 @@ import os
 import scipy.ndimage
 import datetime
 
+import pytesseract
 
 if __name__ == '__main__':
 
@@ -69,11 +71,21 @@ if __name__ == '__main__':
   components = cc.get_connected_components(segmented_image)
   cc.draw_bounding_boxes(img,components,color=(255,0,0),line_size=2)
 
-  imsave(outfile, img)
-  
-  if arg.boolean_value('display'):
-    cv2.imshow('segmented_image',segmented_image)
+  #print dir(components[0][0])
+  c1 = components[0][0]
+  c2 = components[0][1]
 
-    if cv2.waitKey(0) == 27:
-      cv2.destroyAllWindows()
-    cv2.destroyAllWindows()
+  for component in components:
+    top_left = component[0]
+    bottom_right = component[1]
+
+    img_data = img[top_left.start:top_left.stop, bottom_right.start:bottom_right.stop]
+    pil_img = Image.fromarray(img_data)
+    text = pytesseract.image_to_string(pil_img, lang="jpn", config="-psm 12")
+    print text
+
+
+  blah = img[c1.start:c1.stop, c2.start:c2.stop]
+  cv2.imshow("cropped", blah)
+
+  imsave(outfile, img)

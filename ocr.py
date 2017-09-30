@@ -27,7 +27,7 @@ import os
 import scipy.ndimage
 from pylab import zeros,amax,median
 
-import pytesseract
+import pytesseract as tesseract
 
 class Blurb(object):
   def __init__(self, x, y, w, h, text, confidence=100.0):
