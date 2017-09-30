@@ -46,24 +46,26 @@ def get_blurbs(img):
   for cnt in contours2:
     area = cv2.contourArea(cnt)
     if area > 1000 and area < ((height / 4) * (width / 4)):
-      draw_mask = cv2.cvtColor(np.zeros_like(img).fill(255), cv2.COLOR_BGR2GRAY)
+      draw_mask = cv2.cvtColor(np.zeros_like(img), cv2.COLOR_BGR2GRAY)
       approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
       pickle.dump(approx, open("approx.pkl", mode="w"))
       cv2.fillPoly(draw_mask, [approx], (255,0,0))
       cv2.fillPoly(final_mask, [approx], (255,0,0))
       image = cv2.bitwise_and(draw_mask, cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+      # draw_mask_inverted = cv2.bitwise_not(draw_mask)
+      # image = cv2.bitwise_or(image, draw_mask_inverted)
       y = approx[:, 0, 1].min()
       h = approx[:, 0, 1].max() - y
       x = approx[:, 0, 0].min()
       w = approx[:, 0, 0].max() - x
       image = image[y:y+h, x:x+w]
       pil_image = Image.fromarray(image)
-#      pil_image.show()
-      text = pytesseract.image_to_string(pil_image, lang="jpn_vert", config="")
+
+      text = pytesseract.image_to_string(pil_image, lang="jpn_vert", config="--psm 12")
       if text:
         blurb = Blurb(x, y, w, h, text)
         blurbs.append(blurb)
-      print "Attempt: " + text
+        print "Attempt: " + text
 
   return blurbs
 

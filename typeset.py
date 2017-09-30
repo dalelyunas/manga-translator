@@ -3,7 +3,7 @@ from PIL import ImageDraw
 from PIL import ImageFont
 from ocr import TranslatedBlurb
 import math
-
+import dill as pickle
 
 def flow_into_box(text, w, font=None, min_word_on_line=.3):
     def text_width(l):
@@ -60,6 +60,7 @@ def typeset_blurb(img, blurb):
     area = blurb.w * blurb.h
     fontsize = int(math.sqrt(area) / 10)
     font = ImageFont.truetype(font="/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", size=fontsize)
+    pickle.dump(img, open("tts.pkl", mode="w"))
     flowed = flow_into_box(text, blurb.w)
     d = ImageDraw.Draw(img)
     img.paste((255, 255, 255), (blurb.x, blurb.y, blurb.x + blurb.w, blurb.y + blurb.h))
