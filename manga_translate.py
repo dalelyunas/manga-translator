@@ -21,6 +21,7 @@ def main():
 
     for blurb in blurbs:
         translated = translate.translate_blurb(blurb)
+#        translated = blurb
         typeset.typeset_blurb(to_typeset, translated)
 
     to_typeset.save(args.out)

@@ -5,6 +5,7 @@ from ocr import TranslatedBlurb
 import math
 import dill as pickle
 
+
 def flow_into_box(text, w, font=None, min_word_on_line=.3):
     def text_width(l):
         if l:
@@ -30,17 +31,17 @@ def flow_into_box(text, w, font=None, min_word_on_line=.3):
         if proportion_of_fit > .95:
             line += c_text
             idx += len(c_text)
-        elif proportion_of_fit > min_word_on_line:
-            split = max(int(proportion_of_fit * len(c_text)), 1)
-            c_text = c_text[:split] + "-"
-            line += c_text
-            idx += len(c_text) - 1
+#        elif proportion_of_fit > min_word_on_line:
+#            split = max(int(proportion_of_fit * len(c_text)), 1)
+#            c_text = c_text[:split] + "-"
+#            line += c_text
+#            idx += len(c_text) - 1
         else:
             if len(line) > 0:
                 lines.append(line)
                 line = ""
             else:
-                split = max(int(proportion_of_fit * len(c_text)), 1)
+                split = max(int(proportion_of_fit * len(c_text)) / 2, 1)
                 c_text = c_text[:split] + "-"
                 lines.append(c_text)
                 idx += len(c_text) - 1
@@ -63,5 +64,8 @@ def typeset_blurb(img, blurb):
     pickle.dump(img, open("tts.pkl", mode="w"))
     flowed = flow_into_box(text, blurb.w)
     d = ImageDraw.Draw(img)
-    img.paste((255, 255, 255), (blurb.x, blurb.y, blurb.x + blurb.w, blurb.y + blurb.h))
-    d.text((blurb.x, blurb.y), flowed.strip(), fill=(0, 0, 0), font=font)
+    size = d.textsize(flowed)
+    x = (blurb.x + blurb.w / 2) - (size[0] / 2)
+    y = (blurb.y + blurb.h / 2) - (size[1] / 2)
+    img.paste((255, 255, 255), (x, y, x + size[0], y + size[1]))
+    d.text((x, y), flowed.strip(), fill=(0, 0, 0))
