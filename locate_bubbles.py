@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from PIL import Image
-from ocr import Blurb
+from translate import Blurb
 
 import sys
 import numpy as np
@@ -67,7 +67,7 @@ def get_blurbs(img):
     if area > 1000 and area < ((height / 3) * (width / 3)):
       draw_mask = cv2.cvtColor(np.zeros_like(img), cv2.COLOR_BGR2GRAY)
       approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
-      pickle.dump(approx, open("approx.pkl", mode="w"))
+      # pickle.dump(approx, open("approx.pkl", mode="w"))
       cv2.fillPoly(draw_mask, [approx], (255,0,0))
       cv2.fillPoly(final_mask, [approx], (255,0,0))
       image = cv2.bitwise_and(draw_mask, cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))

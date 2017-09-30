@@ -1,7 +1,7 @@
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
-from ocr import TranslatedBlurb
+from translate import TranslatedBlurb
 import math
 import dill as pickle
 
@@ -61,7 +61,7 @@ def typeset_blurb(img, blurb):
     area = blurb.w * blurb.h
     fontsize = int(math.sqrt(area) / 10)
     font = ImageFont.truetype(font="/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", size=fontsize)
-    pickle.dump(img, open("tts.pkl", mode="w"))
+    # pickle.dump(img, open("tts.pkl", mode="w"))
     flowed = flow_into_box(text, blurb.w)
     d = ImageDraw.Draw(img)
     size = d.textsize(flowed)
