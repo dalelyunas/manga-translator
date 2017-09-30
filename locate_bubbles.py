@@ -46,7 +46,7 @@ def get_blurbs(img):
   for cnt in contours2:
     area = cv2.contourArea(cnt)
     if area > 1000 and area < ((height / 4) * (width / 4)):
-      draw_mask = cv2.cvtColor(np.zeros_like(img), cv2.COLOR_BGR2GRAY)
+      draw_mask = cv2.cvtColor(np.zeros_like(img).fill(255), cv2.COLOR_BGR2GRAY)
       approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
       pickle.dump(approx, open("approx.pkl", mode="w"))
       cv2.fillPoly(draw_mask, [approx], (255,0,0))
