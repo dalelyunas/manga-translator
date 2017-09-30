@@ -50,12 +50,7 @@ def draw_2d_slices(img,slices,color=(0,0,255),line_size=1):
     cv2.rectangle(img,(horiz.start,vert.start),(horiz.stop,vert.stop),color,line_size)
 
 def max_width_2d_slices(lines):
-  max_width = 0
-  for line in lines:
-    width = line[1].stop - line[1].start
-    if width>max_width:
-      width = max_width
-  return max_width
+  return max(l[1].stop - l[1].start for l in lines)
 
 def estimate_furigana(lines):
   max_width = max_width_2d_slices(lines)
@@ -77,23 +72,30 @@ def segment_into_lines(img,component, min_segment_threshold=1):
   y = ys.start
   aspect = float(w)/float(h)
 
+  def blank_count(img_slice, d):
+    divisor = 1
+    if len(img_slice.shape) > d:
+      divisor = img_slice.shape[-1]
+    return np.count_nonzero(img_slice) / divisor
+
   vertical = []
   start_col = xs.start
   for col in range(xs.start,xs.stop):
-    count = np.count_nonzero(img[ys.start:ys.stop,col])
-    if count<=min_segment_threshold or col==(xs.stop):
+    count = blank_count(img[ys.start:ys.stop,col], 1)
+    if count>=(h * min_segment_threshold) or col==(xs.stop - 1):
       if start_col>=0:
         vertical.append((slice(ys.start,ys.stop),slice(start_col,col)))
         start_col=-1
     elif start_col < 0:
       start_col=col
-
+    
+  #  print max_width_2d_slices(vertical)
   #detect horizontal rows of non-zero pixels
   horizontal=[]
   start_row = ys.start
   for row in range(ys.start,ys.stop):
-    count = np.count_nonzero(img[row,xs.start:xs.stop])
-    if count<=min_segment_threshold or row==(ys.stop):
+    count = blank_count(img[row,xs.start:xs.stop], 2)
+    if count<=(min_segment_threshold) or row==(ys.stop - 1):
       if start_row>=0:
         horizontal.append((slice(start_row,row),slice(xs.start,xs.stop)))
         start_row=-1
@@ -138,7 +140,7 @@ def ocr_on_bounding_boxes(img, components):
     #if len(vertical)<2 and len(horizontal)<2:continue
 
     #attempt to separately process furigana
-    #(furigana, non_furigana) = estimate_furigana(vertical)
+    (furigana, non_furigana) = estimate_furigana(vertical)
 
     '''
       from http://code.google.com/p/tesseract-ocr/wiki/ControlParams
@@ -159,7 +161,7 @@ def ocr_on_bounding_boxes(img, components):
     if len(vertical)<2:
       params += "--psm 5"
     else:
-      pass
+      params += "--psm 5"
       # Don't do anything
 
     configParams = []
@@ -177,9 +179,13 @@ def ocr_on_bounding_boxes(img, components):
     configParams.append(('textord_debug_tabfind','0'))
     params += " ".join([configParam(p[0], p[1]) for p in configParams])
 
-    blurb = ocr_on_box(img, component, params)
-    if blurb:
-      blurbs.append(blurb)
+
+    for line in [component]: #non_furigana + furigana:
+      if line[1].stop - line[1].start < 10:
+        continue
+      blurb = ocr_on_box(img, line, params)
+      if blurb:
+        blurbs.append(blurb)
     '''
     for line in non_furigana:
       x=line[1].start
