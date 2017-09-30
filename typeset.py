@@ -63,4 +63,4 @@ def typeset_blurb(img, blurb):
     flowed = flow_into_box(text, blurb.w)
     d = ImageDraw.Draw(img)
     img.paste((255, 255, 255), (blurb.x, blurb.y, blurb.x + blurb.w, blurb.y + blurb.h))
-    d.text((blurb.x, blurb.y), flowed, fill=(0, 0, 0))
+    d.text((blurb.x, blurb.y), flowed.strip(), fill=(0, 0, 0), font=font)
