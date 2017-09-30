@@ -18,9 +18,12 @@ import clean_page as clean
 import ocr
 import segmentation as seg
 import furigana
+import translate
+import typeset
 import arg
 import defaults
 from scipy.misc import imsave
+from scipy.misc import imshow
 from PIL import Image
 
 import numpy as np
@@ -30,6 +33,7 @@ import argparse
 import os
 import scipy.ndimage
 import datetime
+import dill as pickle
 
 import pytesseract
 
@@ -53,11 +57,13 @@ if __name__ == '__main__':
 
   infile = arg.string_value('infile')
   outfile = arg.string_value('outfile',default_value=infile + '.text_areas.png')
+  outfile_typeset = arg.string_value('out_typeset',default_value=infile + '.typeset.png')
 
   if not os.path.isfile(infile):
     print 'Please provide a regular existing input file. Use -h option for help.'
     sys.exit(-1)
   img = cv2.imread(infile)
+  to_typeset = Image.fromarray(img.copy())
   gray = clean.grayscale(img)
 
   binary_threshold=arg.integer_value('binary_threshold',default_value=defaults.BINARY_THRESHOLD)
@@ -73,7 +79,16 @@ if __name__ == '__main__':
   imsave(outfile, img)
 
   blurbs = ocr.ocr_on_bounding_boxes(img, components)
-  print "\n".join((unicode(b) for b in blurbs))
+
+  long_blurb = max(blurbs, key=lambda b: len(b.text))
+  translated = translate.translate_blurb(long_blurb)
+  pickle.dump(to_typeset, open("tts.pkl", mode="w"))
+  pickle.dump(translated, open("blurb.pkl", mode="w"))  
+  typeset.typeset_blurb(to_typeset, translated)
+  to_typeset.show()
+
+  
+  #  print "\n".join((unicode(b) for b in blurbs))
   
 
 

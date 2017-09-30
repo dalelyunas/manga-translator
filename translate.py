@@ -8,5 +8,5 @@ def translate_text(text):
 
 
 def translate_blurb(blurb):
-    translation = translate_text(blurb.text)
+    translation = translate_text(blurb.clean_text())
     return TranslatedBlurb.as_translated(blurb, translation)

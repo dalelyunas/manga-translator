@@ -19,6 +19,7 @@ import clean_page as clean
 import arg
 import defaults
 import argparse
+import re
 
 import numpy as np
 import cv2
@@ -40,8 +41,30 @@ class Blurb(object):
     self.text = text
     self.confidence = confidence
 
+  def clean_text(self):
+    text = self.text
+    text = re.sub(r"\n", "", text)
+    return text
+
   def __unicode__(self):
     return str(self.x)+','+str(self.y)+' '+str(self.w)+'x'+str(self.h)+' '+ str(self.confidence)+'% :'+ self.text
+
+
+class TranslatedBlurb(Blurb):
+  def __init__(self, x, y, w, h, text, confidence, translation):
+    Blurb.__init__(self, x, y, w, h, text, confidence)
+    self.translation = translation
+
+  @classmethod
+  def as_translated(cls, parent, translation):
+    return cls(parent.x,
+               parent.y,
+               parent.w,
+               parent.h,
+               parent.text,
+               parent.confidence,
+               translation)
+
 
 def draw_2d_slices(img,slices,color=(0,0,255),line_size=1):
   for entry in slices:
