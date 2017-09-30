@@ -27,7 +27,9 @@ import os
 import scipy.ndimage
 from pylab import zeros,amax,median
 
-import pytesseract as tesseract
+from PIL import Image
+import pytesseract
+
 
 class Blurb(object):
   def __init__(self, x, y, w, h, text, confidence=100.0):
@@ -37,6 +39,9 @@ class Blurb(object):
     self.h=h
     self.text = text
     self.confidence = confidence
+
+  def __unicode__(self):
+    return str(self.x)+','+str(self.y)+' '+str(self.w)+'x'+str(self.h)+' '+ str(self.confidence)+'% :'+ self.text
 
 def draw_2d_slices(img,slices,color=(0,0,255),line_size=1):
   for entry in slices:
@@ -131,34 +136,49 @@ def ocr_on_bounding_boxes(img, components):
       textord_force_make_prop_words 	F 	Force proportional word segmentation on all rows.
     '''
     #now run OCR on this bounding box
-    api = tesseract.TessBaseAPI()
-    api.Init(".","jpn",tesseract.OEM_DEFAULT)
-    #handle single column lines as "vertical align" and Auto segmentation otherwise
+    params = ""
     if len(vertical)<2:
-      api.SetPageSegMode(5)#tesseract.PSM_VERTICAL_ALIGN)#PSM_AUTO)#PSM_SINGLECHAR)#
+      params += "--psm 5"
     else:
-      api.SetPageSegMode(tesseract.PSM_AUTO)#PSM_SINGLECHAR)#
-    api.SetVariable('chop_enable','T')
-    api.SetVariable('use_new_state_cost','F')
-    api.SetVariable('segment_segcost_rating','F')
-    api.SetVariable('enable_new_segsearch','0')
-    api.SetVariable('language_model_ngram_on','0')
-    api.SetVariable('textord_force_make_prop_words','F')
-    api.SetVariable('tessedit_char_blacklist', '}><L')
-    api.SetVariable('textord_debug_tabfind','0')
+      pass
+      # Don't do anything
 
+    configParams = []
+    def configParam(param, val):
+      return "-c " + param + "=" + val
+    
+    # api.SetVariable('chop_enable','T')
+    configParams.append(("chop_enable", "T"))
+    params += " ".join([configParam(p[0], p[1]) for p in configParams])
+    # api.SetVariable('use_new_state_cost','F')
+#    api.SetVariable('segment_segcost_rating','F')
+#    api.SetVariable('enable_new_segsearch','0')
+#    api.SetVariable('language_model_ngram_on','0')
+#    api.SetVariable('textord_force_make_prop_words','F')
+#    api.SetVariable('tessedit_char_blacklist', '}><L')
+#    api.SetVariable('textord_debug_tabfind','0')
+#
     x=component[1].start
     y=component[0].start
     w=component[1].stop-x
     h=component[0].stop-y
-    roi = cv2.cv.CreateImage((w,h), 8, 1)
+    top_left = component[0]
+    bottom_right = component[1]
+    img_data = img[top_left.start:top_left.stop, bottom_right.start:bottom_right.stop]
+    pil_img = Image.fromarray(img_data)
+    text = pytesseract.image_to_string(pil_img,
+                                       lang="jpn_vert",
+                                       config=params)
+    conf = 1
+    """    roi = cv2.cv.CreateImage((w,h), 8, 1)
     sub = cv2.cv.GetSubRect(cv2.cv.fromarray(img), (x, y, w, h))
     cv2.cv.Copy(sub, roi)
     tesseract.SetCvImage(roi, api)
     txt=api.GetUTF8Text()
-    conf=api.MeanTextConf()
-    if conf>0 and len(txt)>0:
-      blurb = Blurb(x, y, w, h, txt, confidence=conf)
+    conf=api.MeanTextConf() """
+    
+    if conf>0 and len(text)>0:
+      blurb = Blurb(x, y, w, h, text, confidence=conf)
       blurbs.append(blurb)
 
     '''

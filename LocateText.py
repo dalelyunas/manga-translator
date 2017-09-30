@@ -70,22 +70,10 @@ if __name__ == '__main__':
   segmented_image = segmented_image[:,:,2]
   components = cc.get_connected_components(segmented_image)
   cc.draw_bounding_boxes(img,components,color=(255,0,0),line_size=2)
-
-  #print dir(components[0][0])
-  c1 = components[0][0]
-  c2 = components[0][1]
-
-  for component in components:
-    top_left = component[0]
-    bottom_right = component[1]
-
-    img_data = img[top_left.start:top_left.stop, bottom_right.start:bottom_right.stop]
-    pil_img = Image.fromarray(img_data)
-    text = pytesseract.image_to_string(pil_img, lang="jpn", config="-psm 12")
-    print text
-
-
-  blah = img[c1.start:c1.stop, c2.start:c2.stop]
-  cv2.imshow("cropped", blah)
-
   imsave(outfile, img)
+
+  blurbs = ocr.ocr_on_bounding_boxes(img, components)
+  print "\n".join((unicode(b) for b in blurbs))
+  
+
+
