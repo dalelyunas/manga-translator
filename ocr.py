@@ -111,6 +111,25 @@ def segment_into_lines(img,component, min_segment_threshold=1):
   #if len(vertical)<2 and len(horizontal)<2:continue
   return (aspect, vertical, horizontal)
 
+def ocr_on_box(img, box, params):
+      x=box[1].start
+      y=box[0].start
+      w=box[1].stop-x
+      h=box[0].stop-y
+      top_left = box[0]
+      bottom_right = box[1]
+      img_data = img[top_left.start:top_left.stop, bottom_right.start:bottom_right.stop]
+      pil_img = Image.fromarray(img_data)
+      text = pytesseract.image_to_string(pil_img,
+                                       lang="jpn_vert",
+                                       config=params)
+      conf = 1
+
+      if conf>0 and len(text)>0:
+        blurb = Blurb(x, y, w, h, text, confidence=conf)
+        return blurb
+
+
 def ocr_on_bounding_boxes(img, components):
 
   blurbs = []
@@ -149,38 +168,18 @@ def ocr_on_bounding_boxes(img, components):
     
     # api.SetVariable('chop_enable','T')
     configParams.append(("chop_enable", "T"))
+    configParams.append(('use_new_state_cost','F'))
+    configParams.append(('segment_segcost_rating','F'))
+    configParams.append(('enable_new_segsearch','0'))
+    configParams.append(('language_model_ngram_on','0'))
+    configParams.append(('textord_force_make_prop_words','F'))
+    configParams.append(('tessedit_char_blacklist', '}><L'))
+    configParams.append(('textord_debug_tabfind','0'))
     params += " ".join([configParam(p[0], p[1]) for p in configParams])
-    # api.SetVariable('use_new_state_cost','F')
-#    api.SetVariable('segment_segcost_rating','F')
-#    api.SetVariable('enable_new_segsearch','0')
-#    api.SetVariable('language_model_ngram_on','0')
-#    api.SetVariable('textord_force_make_prop_words','F')
-#    api.SetVariable('tessedit_char_blacklist', '}><L')
-#    api.SetVariable('textord_debug_tabfind','0')
-#
-    x=component[1].start
-    y=component[0].start
-    w=component[1].stop-x
-    h=component[0].stop-y
-    top_left = component[0]
-    bottom_right = component[1]
-    img_data = img[top_left.start:top_left.stop, bottom_right.start:bottom_right.stop]
-    pil_img = Image.fromarray(img_data)
-    text = pytesseract.image_to_string(pil_img,
-                                       lang="jpn_vert",
-                                       config=params)
-    conf = 1
-    """    roi = cv2.cv.CreateImage((w,h), 8, 1)
-    sub = cv2.cv.GetSubRect(cv2.cv.fromarray(img), (x, y, w, h))
-    cv2.cv.Copy(sub, roi)
-    tesseract.SetCvImage(roi, api)
-    txt=api.GetUTF8Text()
-    conf=api.MeanTextConf() """
-    
-    if conf>0 and len(text)>0:
-      blurb = Blurb(x, y, w, h, text, confidence=conf)
-      blurbs.append(blurb)
 
+    blurb = ocr_on_box(img, component, params)
+    if blurb:
+      blurbs.append(blurb)
     '''
     for line in non_furigana:
       x=line[1].start
