@@ -11,7 +11,9 @@ Automatically translates manga pages from Japanese to English.
 
 # Example
 
+### Untranslated
 ![untranslated][untranslated]
+### Translated
 ![translated][translated]
 
 [untranslated]: img/opm-5.jpg
