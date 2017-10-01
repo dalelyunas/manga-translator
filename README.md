@@ -11,8 +11,11 @@ Automatically translates manga pages from Japanese to English.
 
 # Example
 
-![untranslated][img/opm-5.jpg]
-![translated][translation-example.jpg]
+![untranslated][untranslated]
+![translated][translated]
+
+[untranslated]: img/opm-5.jpg
+[translated]: translation-example.jpg
 
 # Dependencies
 
