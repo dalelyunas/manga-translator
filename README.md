@@ -9,6 +9,11 @@ Automatically translates manga pages from Japanese to English.
 * Send the text to Google Translate
 * Typeset the translated text back into the text bubbles
 
+# Example
+
+![untranslated][img/opm-5.jpg]
+![translated][translation-example.jpg]
+
 # Dependencies
 
 * Python 2.7
