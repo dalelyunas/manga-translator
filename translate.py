@@ -1,4 +1,5 @@
 import subprocess
+import re
 
 
 class Blurb(object):
